@@ -1,0 +1,55 @@
+Upload and install your Stripe App
+Make your app available to team members on your Stripe account.
+Ask about this page
+Copy for LLM
+
+View as Markdown
+Some Stripe Apps features also require you to upload your app. For more information, see:
+
+Store secrets
+Add server-side functionality
+To share your app with your team members, install it on your Stripe account with two steps:
+
+Upload your app in test mode
+Install in live mode
+Any team member with access to your Stripe account can run your installed apps. To give other Stripe accounts access, you can publish your app on the Stripe App Marketplace. Your app ID must be globally unique.
+
+Upload your app in test mode
+To upload your app, run the following command from your project root directory:
+
+Command Line
+
+
+
+stripe apps upload
+Stripe validates your app manifest, which defaults to test mode availability on your Stripe account. After validation is complete, you see a banner with a prompt and button to install the new version into test mode. You can configure the app manifest to allow installation into sandboxes.
+
+You can install previous versions though the Version History list.
+
+In the version history table, click the overflow menu () of the version you want to install.
+Select Install in test mode and complete the installation.
+After this step:
+
+Any team member can access your app in test mode at https://dashboard.stripe.com/test/.
+Your app can store secrets in test mode.
+You can access your app’s signing secret to connect it to a backend.
+Install in live mode
+To access real customer data, install your app in live mode.
+
+Select your app from the Apps page in the Developers Dashboard.
+Select the Private to Perfect Chapter Unipessoal Lda option when choosing how to distribute.
+Choose a version for your app and click Continue.
+Click Continue to open your app in the Dashboard, then click Install.
+Click Done, refresh your browser, and see your app in live mode across the Dashboard in the right-hand side drawer.
+After this step:
+
+Any team member can access your app in live mode in the Dashboard.
+Your app can store secrets in live mode.
+Your app’s signing secret remains available.
+Uninstall your app in live mode
+To switch between installing your app in live mode to publishing it on the Stripe App Marketplace, uninstall the app in live mode:
+
+Go to the Installed Apps page in the Dashboard, and find the app you want to uninstall.
+Click the overflow menu  at the right side of your app, and click View app details.
+Click Uninstall app, and click Uninstall.
+After this step, you can publish your app to the Stripe App Marketplace.

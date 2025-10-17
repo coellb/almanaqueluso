@@ -1,0 +1,103 @@
+🧩 1. Primeira Reclamação (já submetida em 15 de outubro)
+
+Problema:
+Durante mais de 24 horas, o Replit Agent foi incapaz de executar um simples login de administrador na minha aplicação em produção.
+
+Detalhes:
+
+A app funcionava perfeitamente em desenvolvimento.
+
+Em produção, apresentava página branca e erro:
+stylesheet not loaded, MIME type 'text/html' not 'text/css'.
+
+APIs funcionavam, assets existiam localmente, mas não eram servidos.
+
+Foram feitas múltiplas reconstruções e publicações, sem efeito.
+
+Impacto:
+
+24 h de bloqueio total.
+
+Créditos consumidos sem resultado.
+
+Pedido de reembolso submetido (sem resposta após envio do ficheiro HAR).
+
+⚙️ 2. Nova Reclamação — Bug Crítico e Bloqueio no Stripe Payments
+
+Aplicação: AlmanaqueLuso (app de calendário cultural português)
+Problema: O Replit não consegue montar corretamente o Stripe PaymentElement, bloqueando totalmente o sistema de pagamentos (core da aplicação).
+
+Contexto técnico:
+
+Stack: React 18 + TypeScript + Vite + Express + Stripe SDK.
+
+Backend: Stripe configurado corretamente, PaymentIntent criado com sucesso (€ 0,99).
+
+CSP headers configurados (ultra-permissivos em desenvolvimento).
+
+Blueprint seguido à risca, incluindo soluções fornecidas pelo próprio Replit Agent.
+
+Erro persistente:
+
+Invalid value for stripe.confirmPayment(): elements should have a mounted Payment Element.
+Could not retrieve elements store due to unexpected error
+
+
+O iframe PaymentElement nunca monta.
+
+O runtime overlay de erros do Replit interfere com o Stripe (iframe bloqueado).
+
+O ficheiro vite.config.ts está read-only, impedindo desativar a camada que quebra o Stripe.
+
+Impacto:
+
+12 h consecutivas de tentativa de integração, sem sucesso.
+
+Impossível aceitar pagamentos (funcionalidade core).
+
+Perda direta de produtividade e impossibilidade de faturar.
+
+🧠 3. Outros problemas recorrentes
+
+O Replit Secrets corrompe variáveis com underscores (STRIPE_SECRET_KEY, VAPID_PUBLIC_KEY, etc.), obrigando a criar aliases manuais.
+
+O Replit Agent demora horas a responder, muitas vezes sem conseguir executar comandos básicos.
+
+Não existe forma de desativar runtime error overlays que interferem com SDKs externos.
+
+⚠️ Resumo do impacto
+
++36 horas perdidas em operações básicas (login, deploy, pagamentos).
+
+Falhas de infraestrutura, não de código.
+
+Sem resposta útil do suporte após submissão do ficheiro HAR.
+
+Bloqueio total no desenvolvimento de produtos comerciais.
+
+💰 Pedidos
+
+Reembolso total dos créditos consumidos nas últimas 48 h, por falhas de serviço e suporte.
+
+Análise técnica urgente do problema de compatibilidade entre o Replit Agent e o Stripe Payment Element.
+
+Correção do bug nas Replit Secrets que corrompe variáveis com underscores.
+
+Opção para desativar o runtime overlay que interfere com iframes externos.
+
+Conta associada:
+📧 oemaildobernardocoelho@gmail.com
+🏷️ Empresa: Perfect Chapter Unipessoal Lda
+🧾 Repls afetados: whatwerelost, AlmanaqueLuso
+📅 Datas: 15–17 outubro 2025
+
+A Replit posiciona-se como uma plataforma que “permite criar apps mesmo sem saber programar”, mas a minha experiência recente mostra o oposto — uma ferramenta instável, sem suporte eficaz, e incapaz de executar integrações básicas que funcionam em qualquer ambiente Node normal.
+
+Aguardo uma resposta rápida e uma compensação justa.
+Obrigado pela atenção.
+
+Cumprimentos,
+Bernardo Coelho
+(oemaildobernardocoelho@gmail.com
+)
+CEO — Perfect Chapter Unipessoal Lda

@@ -1,0 +1,235 @@
+# === PROMPT PARA O REPLIT (ALMANAQUELUSO) ===
+# Cria projeto PRIVADO com stack Express + React/Vite + PostgreSQL + Drizzle.
+# Instruções completas para colar e executar no Replit.
+
+# 1. CRIA O REPL
+# New Repl -> Node.js -> Nome: AlmanaqueLuso
+# Settings -> Make this Repl PRIVATE
+
+# 2. ESTRUTURA DE PASTAS
+mkdir -p server/src/{db,auth,middleware,push,events,prefs,jobs}
+mkdir -p client/src/{pages,components/ui,lib,store}
+mkdir shared
+
+# 3. PACKAGE.JSON ROOT
+cat <<'EOF' > package.json
+{
+  "name": "almanqueluso",
+  "private": true,
+  "workspaces": ["server","client","shared"],
+  "scripts": {
+    "dev": "pnpm -C server dev & pnpm -C client dev",
+    "build": "pnpm -C client build && pnpm -C server build",
+    "seed": "pnpm -C server seed"
+  }
+}
+EOF
+
+# 4. SERVER PACKAGE.JSON
+cat <<'EOF' > server/package.json
+{
+  "name": "server",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx src/server.ts",
+    "drizzle:gen": "drizzle-kit generate:pg",
+    "drizzle:migrate": "drizzle-kit migrate:pg",
+    "seed": "tsx src/db/seed.ts"
+  },
+  "dependencies": {
+    "express": "^4.19.0",
+    "cors": "^2.8.5",
+    "helmet": "^7.0.0",
+    "rate-limiter-flexible": "^2.5.3",
+    "jsonwebtoken": "^9.0.0",
+    "bcrypt": "^5.1.0",
+    "web-push": "^3.6.0",
+    "pino": "^9.0.0",
+    "drizzle-orm": "^0.30.0",
+    "pg": "^8.11.3",
+    "postgres": "^3.4.4",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.11.30",
+    "@types/jsonwebtoken": "^9.0.2",
+    "@types/bcrypt": "^5.0.2",
+    "tsx": "^4.6.0",
+    "drizzle-kit": "^0.20.14"
+  }
+}
+EOF
+
+# 5. CLIENT PACKAGE.JSON
+cat <<'EOF' > client/package.json
+{
+  "name": "client",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "@tanstack/react-query": "^5.0.0",
+    "zustand": "^4.5.0",
+    "tailwindcss": "^3.4.0",
+    "postcss": "^8.4.35",
+    "autoprefixer": "^10.4.20"
+  },
+  "devDependencies": {
+    "vite": "^5.1.0",
+    "typescript": "^5.4.0",
+    "@types/react": "^18.2.15",
+    "@types/react-dom": "^18.2.7"
+  }
+}
+EOF
+
+# 6. .ENV.EXAMPLE
+cat <<'EOF' > .env.example
+NODE_ENV=development
+PORT=8080
+APP_NAME=AlmanaqueLuso
+CORS_ORIGIN=http://localhost:5173
+DATABASE_URL=postgres://user:pass@host:5432/almanqueluso
+JWT_ACCESS_SECRET=change_me_access
+JWT_REFRESH_SECRET=change_me_refresh
+JWT_ACCESS_EXPIRES=15m
+JWT_REFRESH_EXPIRES=30d
+VAPID_SUBJECT=mailto:admin@almanqueluso.app
+VAPID_PUBLIC_KEY=CHANGE_ME
+VAPID_PRIVATE_KEY=CHANGE_ME
+TIMEZONE=Europe/Lisbon
+DIGEST_DEFAULT_TIME=08:30
+EOF
+
+# 7. SERVER/SRC/DB/SCHEMA.TS
+cat <<'EOF' > server/src/db/schema.ts
+import { pgTable, serial, text, timestamp, boolean, jsonb, integer } from "drizzle-orm/pg-core";
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  email: text("email").notNull().unique(),
+  passwordHash: text("password_hash").notNull(),
+  timezone: text("timezone").default("Europe/Lisbon"),
+  pushSubscription: jsonb("push_subscription"),
+  role: text("role").default("USER"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow()
+});
+export const events = pgTable("events", {
+  id: serial("id").primaryKey(),
+  type: text("type").notNull(),
+  title: text("title").notNull(),
+  startAt: timestamp("start_at", { withTimezone: true }).notNull(),
+  endAt: timestamp("end_at", { withTimezone: true }),
+  location: text("location"),
+  visibility: text("visibility").default("PT"),
+  tags: jsonb("tags"),
+  meta: jsonb("meta"),
+  source: text("source").default("manual"),
+  createdBy: integer("created_by"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow()
+});
+export const preferences = pgTable("preferences", {
+  userId: integer("user_id").primaryKey().references(() => users.id),
+  data: jsonb("data").notNull(),
+  dailyDigestEnabled: boolean("daily_digest_enabled").default(true),
+  dailyDigestTime: text("daily_digest_time").default("08:30")
+});
+export const jobs = pgTable("jobs", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id),
+  eventId: integer("event_id").references(() => events.id),
+  fireAt: timestamp("fire_at", { withTimezone: true }).notNull(),
+  channel: text("channel").default("push"),
+  payload: jsonb("payload"),
+  status: text("status").default("queued")
+});
+EOF
+
+# 8. SERVER/SRC/SERVER.TS
+cat <<'EOF' > server/src/server.ts
+import express from "express";
+import cors from "cors";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
+const app = express();
+app.use(express.json());
+app.use(cors({ origin: process.env.CORS_ORIGIN || "*" }));
+app.use(helmet());
+app.use(rateLimit({ windowMs: 15*60*1000, max:100 }));
+app.get("/api/health", (req,res)=>res.json({status:"healthy",env:process.env.NODE_ENV}));
+app.listen(process.env.PORT||8080, ()=>console.log("AlmanaqueLuso API running"));
+EOF
+
+# 9. CLIENT/SRC/MAIN.TSX
+cat <<'EOF' > client/src/main.tsx
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App";
+ReactDOM.createRoot(document.getElementById("root")!).render(
+  <React.StrictMode>
+    <App/>
+  </React.StrictMode>
+);
+EOF
+
+# 10. CLIENT/SRC/APP.TSX
+cat <<'EOF' > client/src/App.tsx
+import { useEffect, useState } from "react";
+function App() {
+  const [health,setHealth]=useState("");
+  useEffect(()=>{fetch("/api/health").then(r=>r.json()).then(d=>setHealth(d.status));},[]);
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center text-center text-lg">
+      <h1 className="text-4xl font-bold mb-4">🌞 AlmanaqueLuso</h1>
+      <p className="text-gray-600">Status API: {health}</p>
+      <p className="mt-4 text-sm">Calendário, Lua, Marés, Eclipses e Eventos de Portugal 🇵🇹</p>
+    </div>
+  );
+}
+export default App;
+EOF
+
+# 11. TAILWIND CLIENT
+cat <<'EOF' > client/tailwind.config.js
+export default {
+  content: ["./index.html","./src/**/*.{js,ts,jsx,tsx}"],
+  theme: { extend: {} },
+  plugins: []
+}
+EOF
+
+cat <<'EOF' > client/postcss.config.js
+export default { plugins: { tailwindcss: {}, autoprefixer: {} } }
+EOF
+
+cat <<'EOF' > client/src/index.css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+EOF
+
+# 12. SHARED/INDEX.TS
+cat <<'EOF' > shared/index.ts
+export type EventType = "astronomy"|"event_pt"|"match_liga"|"uefa"|"fifa"|"tide"|"moon"|"custom";
+export interface Event {
+  id:number; type:EventType; title:string; startAt:string; location?:string;
+}
+EOF
+
+# 13. SEED EXEMPLO
+cat <<'EOF' > server/src/db/seed.ts
+console.log("Seed AlmanaqueLuso: admin + eventos exemplo criados");
+EOF
+
+# 14. COMANDOS
+npm i -g pnpm
+pnpm install
+pnpm -C server install
+pnpm -C client install
+pnpm dev

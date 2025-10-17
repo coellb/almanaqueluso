@@ -1,0 +1,45 @@
+{
+  "name": "AlmanaqueLuso - Calendário Cultural Português",
+  "short_name": "AlmanaqueLuso",
+  "description": "Calendário cultural português com astronomia, marés, futebol e sabedoria popular",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#c8102e",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["lifestyle", "entertainment", "sports", "news"],
+  "lang": "pt-PT",
+  "dir": "ltr",
+  "scope": "/",
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Ver Marés",
+      "short_name": "Marés",
+      "description": "Consultar previsão de marés",
+      "url": "/dashboard?view=tides",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Eventos Desportivos",
+      "short_name": "Futebol",
+      "description": "Ver jogos de futebol",
+      "url": "/dashboard?view=sports",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

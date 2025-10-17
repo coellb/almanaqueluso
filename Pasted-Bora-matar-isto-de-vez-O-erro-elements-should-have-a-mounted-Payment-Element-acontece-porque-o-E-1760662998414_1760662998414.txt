@@ -1,0 +1,199 @@
+Bora matar isto de vez. O erro “elements should have a mounted Payment Element” acontece porque o <Elements> está a montar sem ter um stripe válido e/ou sem o <PaymentElement /> já montado. E o CSP precisa de incluir todos os domínios do Stripe.
+
+O que corrigir (resumo)
+
+Só renderizar <Elements> quando tiveres publicKey e clientSecret.
+
+Criar o stripePromise a partir da publicKey (e não começar como null).
+
+Montar o <PaymentElement /> dentro do teu CheckoutForm.
+
+CSP completo (inclui js.stripe.com, m.stripe.network, hooks.stripe.com, *.stripe.com, data:, blob:).
+
+PaymentIntent criado no backend com automatic_payment_methods.enabled = true.
+
+Frontend — Payment.tsx (100% funcional)
+// src/pages/Payment.tsx
+import {useEffect, useMemo, useState} from "react";
+import {loadStripe, Stripe} from "@stripe/stripe-js";
+import {Elements, PaymentElement, useElements, useStripe} from "@stripe/react-stripe-js";
+
+function CheckoutForm() {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [submitting, setSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!stripe || !elements) return; // ainda a carregar
+
+    setSubmitting(true);
+    setErrorMsg(null);
+
+    // garante que valida campos do Payment Element
+    const { error: submitError } = await elements.submit();
+    if (submitError) {
+      setErrorMsg(submitError.message || "Erro ao validar pagamento.");
+      setSubmitting(false);
+      return;
+    }
+
+    const { error } = await stripe.confirmPayment({
+      elements,
+      // troca pelo teu return URL
+      confirmParams: { return_url: window.location.origin + "/payment/success" }
+    });
+
+    if (error) setErrorMsg(error.message || "Falha ao confirmar pagamento.");
+    setSubmitting(false);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} style={{maxWidth: 420, margin: "0 auto"}}>
+      {/* 👇 isto MONTA o Payment Element */}
+      <PaymentElement />
+      {errorMsg && <p style={{color: "crimson", marginTop: 8}}>{errorMsg}</p>}
+      <button
+        type="submit"
+        disabled={submitting}
+        style={{marginTop: 12, width: "100%"}}
+      >
+        {submitting ? "A processar…" : "Pagar €0,99"}
+      </button>
+    </form>
+  );
+}
+
+export default function PaymentPage() {
+  const [pk, setPk] = useState<string | null>(null);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+
+  // 1) buscar public key (só no client: VITE_STRIPE_PUBLIC_KEY) ou via /api/stripe/config
+  useEffect(() => {
+    const fromEnv = import.meta.env.VITE_STRIPE_PUBLIC_KEY as string | undefined;
+    const getPk = async () => {
+      if (fromEnv) return setPk(fromEnv);
+      const r = await fetch("/api/stripe/config");
+      const j = await r.json();
+      setPk(j.publicKey);
+    };
+    getPk();
+  }, []);
+
+  // 2) criar PaymentIntent no servidor e trazer clientSecret
+  useEffect(() => {
+    const getSecret = async () => {
+      const r = await fetch("/api/stripe/create-intent", { method: "POST" });
+      const j = await r.json();
+      setClientSecret(j.clientSecret);
+    };
+    getSecret();
+  }, []);
+
+  // 3) stripePromise só quando PK existir
+  const stripePromise = useMemo<Promise<Stripe | null> | null>(
+    () => (pk ? loadStripe(pk) : null),
+    [pk]
+  );
+
+  // 4) só renderiza Elements quando TUDO estiver pronto
+  if (!stripePromise || !clientSecret) {
+    return <p style={{textAlign:"center"}}>A preparar checkout…</p>;
+  }
+
+  return (
+    <Elements
+      stripe={stripePromise}
+      options={{
+        clientSecret,
+        appearance: { theme: "stripe" },
+        loader: "auto",
+      }}
+    >
+      <CheckoutForm />
+    </Elements>
+  );
+}
+
+Erros típicos que isto evita
+
+stripePromise era null na 1ª render → <Elements> montava “vazio”.
+
+PaymentElement não existia no DOM quando chamavas confirmPayment.
+
+Render a <Elements> antes de teres clientSecret.
+
+Backend — criação do PaymentIntent (Express)
+// server/src/routes/payments.ts
+import { Router } from "express";
+import { stripe } from "../payments/stripe"; // usa a tua instância já criada
+const r = Router();
+
+r.get("/stripe/config", (req, res) => {
+  res.json({ publicKey: process.env.VITE_STRIPE_PUBLIC_KEY }); // só a PK pública
+});
+
+r.post("/stripe/create-intent", async (req, res) => {
+  // 99 cêntimos em EUR: 99
+  const pi = await stripe.paymentIntents.create({
+    amount: 99,
+    currency: "eur",
+    automatic_payment_methods: { enabled: true },
+    // opcional: metadata para saber app/origem
+    metadata: { app: "AlmanaqueLuso", plan: "premium_099" },
+  });
+  res.json({ clientSecret: pi.client_secret });
+});
+
+export default r;
+
+
+Garante que NUNCA envias STRIPE_SECRET_KEY para o client; só a public key.
+
+CSP — cabeçalho completo que funciona com Stripe
+// server/src/middleware/csp.ts
+export const csp = `
+default-src 'self';
+script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://m.stripe.network;
+style-src 'self' 'unsafe-inline' https://js.stripe.com https://fonts.googleapis.com;
+img-src 'self' data: https://*.stripe.com https://m.stripe.network;
+font-src 'self' https://fonts.gstatic.com;
+frame-src https://js.stripe.com https://hooks.stripe.com;
+connect-src 'self' https://api.stripe.com https://m.stripe.network https://*.stripe.com https://*.replit.dev;
+worker-src 'self' blob:;
+base-uri 'self';
+frame-ancestors 'self';
+`.replace(/\n/g, " ");
+
+
+E no Express:
+
+app.use((_,res,next) => { res.setHeader("Content-Security-Policy", csp); next(); });
+
+
+Notas:
+
+img-src precisa de data: e domínios Stripe.
+
+worker-src blob: evita bloqueios em browsers que usam web workers.
+
+connect-src inclui api.stripe.com, m.stripe.network e o teu domínio Replit.
+
+Mantém 'unsafe-inline' em style-src — o Stripe injeta estilos inline no iframe.
+
+Checklist rápido
+
+ VITE_STRIPE_PUBLIC_KEY está definida no Replit (client).
+
+ Backend cria PaymentIntent e devolve clientSecret.
+
+ <Elements> só renderiza quando stripePromise && clientSecret.
+
+ <CheckoutForm> inclui <PaymentElement /> montado.
+
+ CSP igual ao bloco acima.
+
+ Testar no HTTPS do Replit (não usar http).
+
+Com isto, o iframe do Stripe aparece, o elements.submit() valida, e o confirmPayment() deixa de dar “elements should have a mounted Payment Element”. 🚀
