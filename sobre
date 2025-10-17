@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sobre — AlmanaqueLuso</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="nav">
+    <div class="container nav-inner">
+      <div class="brand">AlmanaqueLuso</div>
+      <div class="menu">
+        <a href="index.html">Início</a>
+        <a class="active" href="sobre.html">Sobre</a>
+        <a href="contacto.html">Contacto</a>
+      </div>
+    </div>
+  </div>
+
+  <main class="container">
+    <div class="card">
+      <h1>O que é o AlmanaqueLuso?</h1>
+      <p class="lead">Um almanaque digital leve que junta calendário cultural, “conselho do dia” e curiosidades à portuguesa.</p>
+      <div class="grid grid-2" style="margin-top:10px">
+        <div>
+          <h2>Missão</h2>
+          <p>Trazer para o telemóvel o espírito do Borda d’Água — sem complicar, com utilidade prática e humor.</p>
+        </div>
+        <div>
+          <h2>Próximas features</h2>
+          <ul>
+            <li>Fases da lua e horários solares</li>
+            <li>Marés e guia de sementeiras</li>
+            <li>Efemérides e ditos populares</li>
+            <li>Widget diário com “bolinho da sorte”</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">© AlmanaqueLuso</footer>
+</body>
+</html>
