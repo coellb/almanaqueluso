@@ -1,37 +1,53 @@
 <!doctype html>
 <html lang="pt">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>AlmanaqueLuso</title>
-    <style>
-      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin:0; padding:40px; background:#fafafa; }
-      .card { max-width:720px; margin:auto; padding:24px; border:1px solid #eee; border-radius:16px; background:white; box-shadow:0 4px 10px rgba(0,0,0,0.05);}
-      h1 { margin-top:0; color:#222; }
-      button { 
-        padding:12px 20px; 
-        border-radius:10px; 
-        border:1px solid #ddd; 
-        cursor:pointer; 
-        background:#000; 
-        color:#fff; 
-        font-size:16px;
-      }
-      button:hover { background:#333; }
-    </style>
-  </head>
-  <body>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>AlmanaqueLuso — Calendário cultural de Portugal</title>
+  <meta name="description" content="AlmanaqueLuso: calendário cultural leve, com espírito português. Apoia o projeto por 0,99€." />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="nav">
+    <div class="container nav-inner">
+      <div class="brand">AlmanaqueLuso</div>
+      <div class="menu">
+        <a class="active" href="index.html">Início</a>
+        <a href="sobre.html">Sobre</a>
+        <a href="contacto.html">Contacto</a>
+      </div>
+    </div>
+  </div>
+
+  <main class="container">
     <div class="card">
       <h1>AlmanaqueLuso</h1>
-      <p>Site online ✅ — o botão abaixo permite apoiar o projeto com <strong>0,99 €</strong>.</p>
-
+      <p class="lead">Site online ✅ — apoia o projeto com <strong>0,99 €</strong> e ajuda-nos a lançar a versão completa.</p>
       <p>
-        <a href="https://buy.stripe.com/eVqdRb2R6gwG4Zlgmf1oI00" target="_blank" rel="noopener">
-          <button>Comprar por 0,99 €</button>
+        <a class="btn" href="https://buy.stripe.com/eVqdRb2R6gwG4Zlgmf1oI00" target="_blank" rel="noopener">
+          Comprar por 0,99 €
         </a>
       </p>
-
-      <p style="font-size:12px;color:#666">Após o pagamento serás redirecionado para a página de sucesso.</p>
+      <p class="small">Após o pagamento serás redirecionado para a página de sucesso.</p>
+      <div class="hr"></div>
+      <div class="grid grid-2">
+        <section>
+          <h2>Conselho do dia <span class="badge">Bolinhos da sorte</span></h2>
+          <p>“Faz hoje algo que o teu ‘eu’ de amanhã te agradeça.”</p>
+        </section>
+        <section>
+          <h2>O que vem aí</h2>
+          <ul class="small">
+            <li>Fases da Lua, marés e horas de ouro</li>
+            <li>Calendário agrícola e festividades locais</li>
+            <li>Jogos da Liga e efemérides</li>
+            <li>“Conselho do dia” com toque Luso 🇵🇹</li>
+          </ul>
+        </section>
+      </div>
     </div>
-  </body>
+  </main>
+
+  <footer class="footer">© AlmanaqueLuso — um projeto FineBeThat</footer>
+</body>
 </html>
